@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Друзья - Nexus</title>
+    <link rel="stylesheet" href="/css/styles.css">
+	
+	<script src="/js/userState.js"></script>
+    <script src="/js/sounds.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/sidebar.js"></script>
+    
+    <script>
+        // Применяем тему после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.themeColor) {
+                document.body.style.background = user.themeColor;
+            }
+            
+            // Подписываемся на изменения
+            if (typeof UserState !== 'undefined') {
+                UserState.subscribe(function(updatedUser) {
+                    if (updatedUser.themeColor) {
+                        document.body.style.background = updatedUser.themeColor;
+                    }
+                });
+            }
+        });
+    </script>
+    
+    <style>
+        .friend-card { display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--bg); border-radius: 12px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="margin-bottom: 20px;">👥 Друзья</h2>
+        
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Поиск друзей</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" class="input" id="friend-search" placeholder="Введите ник..." style="flex: 1; margin-bottom: 0;">
+                <button class="btn" onclick="app.searchFriends()" style="width: auto;">Найти</button>
+            </div>
+            <div id="search-results"></div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Заявки в друзья</h3>
+            <div id="friend-requests">Загрузка...</div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">Мои друзья</h3>
+            <div id="friends-list">Загрузка...</div>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            currentUser: null,
+
+            init: async function() {
+                const token = localStorage.getItem('token');
+                if (!token) { window.location.href = '/login.html'; return; }
+                
+                const data = await API.getMeStats();
+                if (!data.user) { API.logout(); return; }
+                
+                this.currentUser = data.user;
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                this.loadFriends();
+            },
+
+            loadFriends: async function() {
+                const data = await API.getFriends();
+                
+                const reqContainer = document.getElementById('friend-requests');
+                if (data.requests && data.requests.length > 0) {
+                    reqContainer.innerHTML = data.requests.map(u => 
+                        '<div class="friend-card">' +
+                            '<div class="avatar">' + (u.avatar ? '<img src="/uploads/avatars/' + u.avatar + '" style="width:100%;height:100%;border-radius:50%;">' : u.username[0].toUpperCase()) + '</div>' +
+                            '<span style="flex:1">' + u.username + '</span>' +
+                            '<button class="btn" onclick="app.acceptFriend(\'' + u.id + '\')">Принять</button>' +
+                            '<button class="btn btn-secondary" onclick="app.rejectFriend(\'' + u.id + '\')">Отклонить</button>' +
+                        '</div>'
+                    ).join('');
+                } else {
+                    reqContainer.innerHTML = '<span style="color:var(--text-secondary)">Нет заявок</span>';
+                }
+                
+                const listContainer = document.getElementById('friends-list');
+                if (data.friends && data.friends.length > 0) {
+                    listContainer.innerHTML = data.friends.map(u => 
+                        '<div class="friend-card">' +
+                            '<div class="avatar">' + (u.avatar ? '<img src="/uploads/avatars/' + u.avatar + '" style="width:100%;height:100%;border-radius:50%;">' : u.username[0].toUpperCase()) + '</div>' +
+                            '<span style="flex:1">' + u.username + '</span>' +
+                            '<button class="btn" onclick="window.location.href=\'/messages.html?user=' + u.id + '\'">Написать</button>' +
+                            '<button class="btn btn-secondary" onclick="app.removeFriend(\'' + u.id + '\')">Удалить</button>' +
+                        '</div>'
+                    ).join('');
+                } else {
+                    listContainer.innerHTML = '<span style="color:var(--text-secondary)">Нет друзей</span>';
+                }
+            },
+
+            searchFriends: async function() {
+                const query = document.getElementById('friend-search').value.trim();
+                if (!query) return;
+                
+                const data = await API.searchUsers(query);
+                const container = document.getElementById('search-results');
+                
+                if (data.length === 0) {
+                    container.innerHTML = 'Никого не найдено';
+                    return;
+                }
+                
+                container.innerHTML = data.map(u => 
+                    '<div class="friend-card">' +
+                        '<div class="avatar">' + (u.avatar ? '<img src="/uploads/avatars/' + u.avatar + '" style="width:100%;height:100%;border-radius:50%;">' : u.username[0].toUpperCase()) + '</div>' +
+                        '<span style="flex:1">' + u.username + '</span>' +
+                        (u.isFriend ? '<span>✓ Друзья</span>' : 
+                         u.hasRequest ? '<span>Ожидает...</span>' : 
+                         u.sentRequest ? '<span>Заявка отправлена</span>' :
+                         '<button class="btn" onclick="app.addFriend(\'' + u.username + '\')">Добавить</button>') +
+                    '</div>'
+                ).join('');
+            },
+
+            addFriend: async function(username) {
+                const data = await API.addFriend(username);
+                alert(data.error || 'Заявка отправлена!');
+                document.getElementById('search-results').innerHTML = '';
+            },
+
+            acceptFriend: async function(id) {
+                await API.acceptFriend(id);
+                this.loadFriends();
+                // Воспроизводим звук принятия заявки
+                if (typeof Sounds !== 'undefined') {
+                    Sounds.playFriendRequest();
+                }
+            },
+
+            rejectFriend: async function(id) {
+                await API.rejectFriend(id);
+                this.loadFriends();
+            },
+
+            removeFriend: async function(id) {
+                if (!confirm('Удалить из друзей?')) return;
+                await API.removeFriend(id);
+                this.loadFriends();
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "2f0fd945-9ac9-4078-b0b4-05003fdbcc53": [
+    {
+      "id": "ab09fdc2-8dbe-4c09-b9ba-9adee096a630",
+      "content": "dd",
+      "author": "Mairo",
+      "authorId": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+      "channelId": "2f0fd945-9ac9-4078-b0b4-05003fdbcc53",
+      "createdAt": 1771068686319
+    },
+    {
+      "id": "b5a6e0ad-dae2-4ae7-aa4e-f2219aa09b49",
+      "content": "всё зашибись",
+      "author": "Mairo",
+      "authorId": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+      "channelId": "2f0fd945-9ac9-4078-b0b4-05003fdbcc53",
+      "createdAt": 1779628352971
+    },
+    {
+      "id": "4f32bc59-f6d9-4282-9e2d-443dfca13f7d",
+      "content": "WebRTC  подключен и отлично работает",
+      "author": "Mairo",
+      "authorId": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+      "channelId": "2f0fd945-9ac9-4078-b0b4-05003fdbcc53",
+      "createdAt": 1781778422025
+    },
+    {
+      "id": "04e6653a-516d-4de9-b914-577d0bb0ce75",
+      "content": "э",
+      "author": "Mairo",
+      "authorId": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+      "channelId": "2f0fd945-9ac9-4078-b0b4-05003fdbcc53",
+      "createdAt": 1781778693463
+    }
+  ]
+}

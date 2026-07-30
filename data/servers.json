@@ -1,0 +1,102 @@
+[
+  {
+    "id": "eda8c119-a916-4993-aeae-a858a88e5ed9",
+    "name": "ыыы",
+    "ownerId": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "members": [
+      "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+      "ec4371e8-837f-4dbd-9756-59dd745a9c6e"
+    ],
+    "channels": [
+      {
+        "id": "2f0fd945-9ac9-4078-b0b4-05003fdbcc53",
+        "name": "general",
+        "type": "text"
+      },
+      {
+        "id": "2fe1048e-28d5-463e-8495-893573cc9f24",
+        "name": "General",
+        "type": "voice"
+      }
+    ],
+    "createdAt": 1770898048993,
+    "invites": [
+      {
+        "code": "L0PHDS",
+        "createdAt": 1770898068992
+      },
+      {
+        "code": "309O4K",
+        "createdAt": 1770898623145
+      },
+      {
+        "code": "KUCWMW",
+        "createdAt": 1770898624782
+      },
+      {
+        "code": "W2MI7Z",
+        "createdAt": 1780637820199
+      },
+      {
+        "code": "OUG906",
+        "createdAt": 1780637829900
+      },
+      {
+        "code": "FIIV98",
+        "createdAt": 1780637833799
+      },
+      {
+        "code": "R3A9TQ",
+        "createdAt": 1780637844149
+      },
+      {
+        "code": "QQIB50",
+        "createdAt": 1780637850749
+      },
+      {
+        "code": "LZMGBD",
+        "createdAt": 1780637856099
+      },
+      {
+        "code": "VMYOT2",
+        "createdAt": 1780637859232
+      },
+      {
+        "code": "4IL2J0",
+        "createdAt": 1780637871013
+      },
+      {
+        "code": "VT7JM1",
+        "createdAt": 1780637875709
+      },
+      {
+        "code": "DHVPCK",
+        "createdAt": 1780637877932
+      },
+      {
+        "code": "7I3FB8",
+        "createdAt": 1780637893664
+      },
+      {
+        "code": "UVP01N",
+        "createdAt": 1781696104108
+      },
+      {
+        "code": "SUSZ6A",
+        "createdAt": 1781696113737
+      },
+      {
+        "code": "080LXQ",
+        "createdAt": 1781696120258
+      },
+      {
+        "code": "160R6D",
+        "createdAt": 1781696123131
+      },
+      {
+        "code": "0M69TN",
+        "createdAt": 1781696126957
+      }
+    ]
+  }
+]

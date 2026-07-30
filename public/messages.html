@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сообщения - Nexus</title>
+    <link rel="stylesheet" href="/css/styles.css">
+	
+	<script src="/js/userState.js"></script>
+    <script src="/js/sounds.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/sidebar.js"></script>
+    
+    <script>
+        // Применяем тему после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.themeColor) {
+                document.body.style.background = user.themeColor;
+            }
+        });
+    </script>
+    
+    <style>
+        .chat-list-item { display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--bg); border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: transform 0.2s; }
+        .chat-list-item:hover { transform: translateX(5px); background: var(--surface); }
+        .message { padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; max-width: 70%; word-wrap: break-word; }
+        .message.me { background: var(--primary); margin-left: auto; border-bottom-right-radius: 4px; }
+        .message.other { background: var(--bg); border-bottom-left-radius: 4px; }
+        .chat-window { height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; background: var(--surface); }
+        
+        /* ===== ГОЛОСОВЫЕ СООБЩЕНИЯ ===== */
+        .voice-message {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            min-width: 150px;
+        }
+        
+        .voice-play-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        
+        .voice-play-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .voice-play-btn.playing {
+            background: #ef4444;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .voice-wave {
+            flex: 1;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .voice-bar {
+            width: 3px;
+            background: var(--text-secondary);
+            border-radius: 2px;
+            transition: height 0.2s;
+        }
+        
+        .voice-bar.active {
+            background: var(--primary);
+        }
+        
+        .voice-duration {
+            font-size: 12px;
+            color: var(--text-secondary);
+            min-width: 40px;
+            text-align: right;
+        }
+        
+        .voice-record-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+        
+        .voice-record-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .voice-record-btn.recording {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+            animation: recordPulse 1s infinite;
+        }
+        
+        @keyframes recordPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+        
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 20px;
+            color: #ef4444;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .recording-indicator.active {
+            display: flex;
+        }
+        
+        .recording-time {
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .recording-cancel {
+            margin-left: auto;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .recording-cancel:hover {
+            opacity: 1;
+        }
+        
+        .message-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .message-input-container input {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="margin-bottom: 20px;">💬 Сообщения</h2>
+        
+        <div class="card" id="chat-list">
+            <div id="chats-container">Загрузка...</div>
+        </div>
+
+        <div class="card" id="chat-window" style="display: none;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
+                <button class="btn btn-secondary" onclick="app.closeChat()" style="width: auto; padding: 5px 15px;">← Назад</button>
+                <div class="avatar" style="width: 40px; height: 40px;" id="chat-partner-avatar"></div>
+                <span id="chat-partner-name" style="font-weight: bold;"></span>
+            </div>
+            
+            <div class="chat-window" id="messages-container"></div>
+            
+            <div class="recording-indicator" id="recording-indicator">
+                <span>🔴</span>
+                <span class="recording-time" id="recording-time">0:00</span>
+                <span class="recording-cancel" onclick="app.cancelRecording()">✕ Отмена</span>
+            </div>
+            
+            <div class="message-input-container">
+                <input type="text" class="input" id="message-input" placeholder="Написать сообщение..." style="margin-bottom: 0;" onkeypress="if(event.key==='Enter')app.sendMessage()">
+                <button class="voice-record-btn" id="voice-btn" onclick="app.toggleRecording()">🎤</button>
+                <button class="btn" onclick="app.sendMessage()" style="width: auto;">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            currentUser: null,
+            currentChat: null,
+            refreshInterval: null,
+            
+            mediaRecorder: null,
+            audioChunks: [],
+            recordingStartTime: null,
+            recordingTimer: null,
+            isRecording: false,
+
+            init: async function() {
+                const token = localStorage.getItem('token');
+                if (!token) { window.location.href = '/login.html'; return; }
+                
+                const data = await API.getMeStats();
+                if (!data.user) { API.logout(); return; }
+                
+                this.currentUser = data.user;
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('user');
+                
+                if (userId) {
+                    const friends = await API.getFriends();
+                    const friend = friends.friends.find(f => f.id === userId);
+                    if (friend) {
+                        this.openChat(userId, friend.username, friend.avatar);
+                        return;
+                    }
+                }
+                
+                this.loadChats();
+            },
+
+            loadChats: async function() {
+                const data = await API.getChats();
+                const container = document.getElementById('chats-container');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<span style="color:var(--text-secondary)">Нет сообщений</span>';
+                    return;
+                }
+                
+                container.innerHTML = data.map(chat => 
+                    '<div class="chat-list-item" onclick="app.openChat(\'' + chat.userId + '\', \'' + chat.username + '\', \'' + (chat.avatar || '') + '\')">' +
+                        '<div class="avatar">' + (chat.avatar ? '<img src="/uploads/avatars/' + chat.avatar + '" style="width:100%;height:100%;border-radius:50%;">' : chat.username[0].toUpperCase()) + '</div>' +
+                        '<div style="flex:1">' +
+                            '<div style="font-weight:bold">' + chat.username + '</div>' +
+                            '<div style="font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (chat.lastMessage || 'Нет сообщений') + '</div>' +
+                        '</div>' +
+                    '</div>'
+                ).join('');
+            },
+
+            openChat: async function(userId, username, avatar) {
+                this.currentChat = userId;
+                document.getElementById('chat-list').style.display = 'none';
+                document.getElementById('chat-window').style.display = 'block';
+                document.getElementById('chat-partner-name').textContent = username;
+                
+                const avatarEl = document.getElementById('chat-partner-avatar');
+                if (avatar) {
+                    avatarEl.innerHTML = '<img src="/uploads/avatars/' + avatar + '" style="width:100%;height:100%;border-radius:50%;">';
+                } else {
+                    avatarEl.textContent = username[0].toUpperCase();
+                }
+                
+                await this.loadMessages(userId);
+                await API.markMessagesAsRead(userId);
+                
+                if (window.Sidebar) {
+                    Sidebar.updateBadges();
+                }
+                
+                if (this.refreshInterval) clearInterval(this.refreshInterval);
+                this.refreshInterval = setInterval(() => {
+                    this.loadMessages(userId);
+                }, 3000);
+            },
+
+            closeChat: function() {
+                document.getElementById('chat-list').style.display = 'block';
+                document.getElementById('chat-window').style.display = 'none';
+                this.currentChat = null;
+                if (this.refreshInterval) clearInterval(this.refreshInterval);
+                window.history.replaceState({}, document.title, '/messages.html');
+            },
+
+            loadMessages: async function(userId) {
+                const messages = await API.getMessages(userId);
+                const voiceMessages = await API.getVoiceMessages(userId);
+                
+                const allMessages = [
+                    ...messages.map(m => ({...m, type: 'text'})),
+                    ...voiceMessages.map(m => ({...m, type: 'voice'}))
+                ].sort((a, b) => a.createdAt - b.createdAt);
+                
+                const container = document.getElementById('messages-container');
+                
+                container.innerHTML = allMessages.map(m => {
+                    const isMe = m.from === this.currentUser.id;
+                    const time = new Date(m.createdAt).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+                    
+                    if (m.type === 'voice') {
+                        return this.renderVoiceMessage(m, isMe, time);
+                    }
+                    
+                    return '<div class="message ' + (isMe ? 'me' : 'other') + '">' +
+                        '<div>' + m.text + '</div>' +
+                        '<div style="font-size:10px;opacity:0.7;text-align:' + (isMe ? 'right' : 'left') + ';">' + time + '</div>' +
+                    '</div>';
+                }).join('');
+                
+                container.scrollTop = container.scrollHeight;
+            },
+
+            renderVoiceMessage: function(message, isMe, time) {
+                const duration = this.formatDuration(message.duration || 0);
+                
+                return '<div class="message ' + (isMe ? 'me' : 'other') + '" style="padding: 5px;">' +
+                    '<div class="voice-message" data-id="' + message.id + '">' +
+                        '<button class="voice-play-btn" onclick="app.playVoice(\'' + message.id + '\', \'' + message.audioUrl + '\')">▶</button>' +
+                        '<div class="voice-wave" id="wave-' + message.id + '">' +
+                            Array(15).fill(0).map(function() { return '<div class="voice-bar" style="height:' + (Math.random() * 20 + 5) + 'px"></div>'; }).join('') +
+                        '</div>' +
+                        '<span class="voice-duration" id="duration-' + message.id + '">' + duration + '</span>' +
+                    '</div>' +
+                    '<div style="font-size:10px;opacity:0.7;text-align:' + (isMe ? 'right' : 'left') + ';margin-top:5px;">' + time + '</div>' +
+                '</div>';
+            },
+
+            currentAudio: null,
+
+            playVoice: function(id, url) {
+                const btn = document.querySelector('[data-id="' + id + '"] .voice-play-btn');
+                
+                if (btn.classList.contains('playing')) {
+                    btn.classList.remove('playing');
+                    btn.textContent = '▶';
+                    if (this.currentAudio) {
+                        this.currentAudio.pause();
+                        this.currentAudio = null;
+                    }
+                    return;
+                }
+                
+                document.querySelectorAll('.voice-play-btn.playing').forEach(function(b) {
+                    b.classList.remove('playing');
+                    b.textContent = '▶';
+                });
+                
+                btn.classList.add('playing');
+                btn.textContent = '⏸';
+                
+                const audio = new Audio(url);
+                this.currentAudio = audio;
+                
+                audio.play();
+                audio.onended = function() {
+                    btn.classList.remove('playing');
+                    btn.textContent = '▶';
+                };
+            },
+
+            sendMessage: async function() {
+                const input = document.getElementById('message-input');
+                const text = input.value.trim();
+                if (!text || !this.currentChat) return;
+                
+                await API.sendMessage(this.currentChat, text);
+                input.value = '';
+                await this.loadMessages(this.currentChat);
+            },
+
+            toggleRecording: async function() {
+                if (this.isRecording) {
+                    this.stopRecording();
+                } else {
+                    await this.startRecording();
+                }
+            },
+
+            startRecording: async function() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioChunks = [];
+                    
+                    this.mediaRecorder.ondataavailable = (e) => {
+                        this.audioChunks.push(e.data);
+                    };
+                    
+                    this.mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                        this.sendVoice(audioBlob);
+                    };
+                    
+                    this.mediaRecorder.start();
+                    this.isRecording = true;
+                    this.recordingStartTime = Date.now();
+                    
+                    document.getElementById('voice-btn').classList.add('recording');
+                    document.getElementById('recording-indicator').classList.add('active');
+                    document.getElementById('message-input').disabled = true;
+                    
+                    this.recordingTimer = setInterval(() => {
+                        const elapsed = Math.floor((Date.now() - this.recordingStartTime) / 1000);
+                        document.getElementById('recording-time').textContent = this.formatDuration(elapsed);
+                    }, 1000);
+                    
+                } catch (err) {
+                    alert('Нет доступа к микрофону: ' + err.message);
+                }
+            },
+
+            stopRecording: function() {
+                if (!this.isRecording || !this.mediaRecorder) return;
+                
+                this.mediaRecorder.stop();
+                this.mediaRecorder.stream.getTracks().forEach(t => t.stop());
+                
+                this.isRecording = false;
+                clearInterval(this.recordingTimer);
+                
+                document.getElementById('voice-btn').classList.remove('recording');
+                document.getElementById('recording-indicator').classList.remove('active');
+                document.getElementById('message-input').disabled = false;
+            },
+
+            cancelRecording: function() {
+                if (!this.isRecording) return;
+                
+                this.mediaRecorder.stop();
+                this.mediaRecorder.stream.getTracks().forEach(t => t.stop());
+                
+                this.isRecording = false;
+                clearInterval(this.recordingTimer);
+                this.audioChunks = [];
+                
+                document.getElementById('voice-btn').classList.remove('recording');
+                document.getElementById('recording-indicator').classList.remove('active');
+                document.getElementById('message-input').disabled = false;
+            },
+
+            sendVoice: async function(audioBlob) {
+                if (!this.currentChat) return;
+                
+                const duration = Math.floor((Date.now() - this.recordingStartTime) / 1000);
+                
+                const res = await API.sendVoiceMessage(this.currentChat, audioBlob, duration);
+                if (res.error) {
+                    alert(res.error);
+                    return;
+                }
+                
+                await this.loadMessages(this.currentChat);
+            },
+
+            formatDuration: function(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return mins + ':' + (secs < 10 ? '0' : '') + secs;
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>

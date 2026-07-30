@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Nexus</title>
+    <link rel="stylesheet" href="/css/styles.css">
+   <script>
+    const user = localStorage.getItem('user');
+    if (user) {
+        try {
+            const data = JSON.parse(user);
+            if (data.themeColor) {
+                document.body.style.background = data.themeColor;
+                document.documentElement.style.setProperty('--user-theme', data.themeColor);
+            }
+        } catch(e) {}
+    }
+</script>
+    <style>
+        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .tab { padding: 10px 20px; cursor: pointer; border-radius: 20px; transition: all 0.3s; }
+        .tab.active { background: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .profile-header { position: relative !important; }
+        .profile-menu-container { position: absolute; top: 15px; right: 15px; z-index: 100; }
+        .menu-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); font-size: 20px; cursor: pointer; padding: 8px 12px; border-radius: 8px; transition: all 0.3s; line-height: 1; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; }
+        .menu-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--card-bg, var(--surface)); border: 1px solid var(--border); border-radius: 12px; padding: 8px; min-width: 220px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); display: none; z-index: 101; }
+        .dropdown-menu.active { display: block; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .dropdown-item { padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; color: var(--text); font-size: 14px; }
+        .dropdown-item:hover { background: var(--surface); }
+        .dropdown-item.danger { color: var(--danger); }
+        .dropdown-item.danger:hover { background: rgba(239, 68, 68, 0.1); }
+        .dropdown-divider { height: 1px; background: var(--border); margin: 8px 0; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--card-bg, var(--bg)); border-radius: 16px; padding: 25px; max-width: 450px; width: 90%; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .modal-content.admin-modal { border: 2px solid #fbbf24; box-shadow: 0 20px 60px rgba(251, 191, 36, 0.3); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 18px; font-weight: bold; }
+        .modal-title.admin { color: #fbbf24; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 28px; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .modal-close:hover { background: var(--surface); color: var(--text); }
+        .admin-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; justify-content: center; }
+        .level-display { font-weight: bold; min-width: 80px; text-align: center; padding: 10px 15px; background: var(--surface); border-radius: 8px; border: 2px solid #fbbf24; color: #fbbf24; font-size: 16px; }
+        .setting-group { margin-bottom: 20px; }
+        .setting-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 14px; }
+        .file-input-wrapper { margin-bottom: 10px; }
+		
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surface); color: var(--text); padding: 15px 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 1px solid var(--border); z-index: 9999; opacity: 0; transition: all 0.3s ease; font-size: 14px; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { border-color: #22c55e; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), var(--surface)); }
+        .toast.error { border-color: #ef4444; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), var(--surface)); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card profile-header" style="margin-bottom: 20px; position: relative;">
+            <div class="profile-menu-container">
+                <button class="menu-btn" onclick="app.toggleMenu(event)" title="Меню">⋮</button>
+                <div class="dropdown-menu" id="profile-menu">
+                    <div class="dropdown-item" onclick="app.openEditProfileModal()"><span>✏️</span><span>Редактировать профиль</span></div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item admin-only" onclick="app.openAdminModal()" style="display: none;"><span>👑</span><span>Админ-панель уровней</span></div>
+                    <div class="dropdown-divider admin-only" style="display: none;"></div>
+                    <div class="dropdown-item" onclick="app.toggleSounds()"><span id="sound-icon">🔔</span><span id="sound-text">Звук включён</span></div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item danger" onclick="app.deleteAccount()"><span>🗑️</span><span>Удалить аккаунт</span></div>
+                </div>
+            </div>
+
+            <div class="profile-avatar-container">
+                <div id="level-ring" class="level-ring" style="display: none;"></div>
+                <div id="profile-avatar" class="avatar avatar-large">U</div>
+            </div>
+            <div class="profile-name">
+                <span id="profile-name">User</span>
+                <span id="level-badge" class="level-badge" style="display: none;">
+                    <span class="level-star">⭐</span>
+                    <span id="level-text">Lv.1</span>
+                </span>
+            </div>
+            <div id="xp-section" style="display: none; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">
+                    <span id="level-name">Новичок</span>
+                    <span style="color: #fbbf24; font-weight: bold;"><span id="xp-current">0</span> / <span id="xp-next">100</span> XP</span>
+                </div>
+                <div style="width: 100%; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden;">
+                    <div id="progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); transition: width 0.5s;"></div>
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary); text-align: center;">Всего: <span id="total-xp" style="color: #fbbf24;">0</span> XP</div>
+            </div>
+            <div class="profile-stats" style="margin-top: 20px;">
+                <div class="stat"><div class="stat-value" id="stat-posts">0</div><div class="stat-label">постов</div></div>
+                <div class="stat"><div class="stat-value" id="stat-likes">0</div><div class="stat-label">лайков</div></div>
+                <div class="stat"><div class="stat-value" id="stat-comments">0</div><div class="stat-label">комментов</div></div>
+            </div>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab active">Мои посты</div>
+        </div>
+        <div id="tab-content" class="tab-content active">
+            <div id="user-posts"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования профиля -->
+    <div class="modal-overlay" id="edit-profile-modal" onclick="app.closeModalOnBackground(event, 'edit-profile-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="modal-title">✏️ Редактировать профиль</span>
+                <button class="modal-close" onclick="app.closeEditProfileModal()">×</button>
+            </div>
+            <div class="setting-group">
+                <label class="setting-label">Сменить аватар</label>
+                <div class="file-input-wrapper"><input type="file" class="file-input" id="settings-avatar" accept="image/*"></div>
+                <button class="btn" onclick="app.updateAvatar()" style="width: 100%;">Установить аватар</button>
+            </div>
+            <div class="setting-group">
+                <label class="setting-label">Цвет фона профиля</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="color" class="color-input" id="settings-color" value="#0f172a" style="flex: 1;">
+                    <button class="btn btn-secondary" onclick="app.updateColor()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно админ-панели -->
+    <div class="modal-overlay" id="admin-modal" onclick="app.closeModalOnBackground(event, 'admin-modal')">
+        <div class="modal-content admin-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="modal-title admin">👑 Админ-панель уровней</span>
+                <button class="modal-close" onclick="app.closeAdminModal()">×</button>
+            </div>
+            <div class="admin-controls">
+                <button class="btn btn-secondary" onclick="app.changeLevel(-1)">⬅️ -1</button>
+                <span class="level-display" id="admin-current-level">Lv. 1</span>
+                <button class="btn btn-secondary" onclick="app.changeLevel(1)">+1 ➡️</button>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="number" id="admin-level-input" placeholder="Уровень (1-101)" min="1" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text);">
+                <button class="btn" onclick="app.setLevel()">Установить</button>
+            </div>
+            <button class="btn" onclick="app.setAdminLevel()" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #7c3aed, #db2777);">🔥 Установить Админ-уровень (100001)</button>
+            <button class="btn btn-danger" onclick="app.resetLevel()" style="width: 100%;">🔄 Сбросить к реальному уровню</button>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 15px; text-align: center;">Только для тестирования. После перезагрузки страницы вернётся реальный уровень.</p>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/userState.js"></script>
+    <script src="/js/sounds.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <script>
+    const app = {
+        currentLevel: 1,
+        fakeLevel: null,
+        isAdmin: false,
+        isAdminLevel: false,
+
+        toggleSounds: function() {
+            const enabled = Sounds.toggle();
+            document.getElementById('sound-icon').textContent = enabled ? '🔔' : '🔕';
+            document.getElementById('sound-text').textContent = enabled ? 'Звук включён' : 'Звук выключен';
+            this.showToast(enabled ? 'Звук включён' : 'Звук выключен', 'info');
+        },
+
+        showToast: function(message, type = 'success') {
+            const oldToast = document.querySelector('.toast');
+            if (oldToast) oldToast.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        },
+
+        init: async function() {
+            if (!UserState.getUser()) {
+                const loaded = await UserState.init();
+                if (!loaded) { window.location.href = '/login.html'; return; }
+            }
+            const user = UserState.getUser();
+            this.currentUser = user;
+            this.checkAdminRights();
+            UserState.subscribe((updatedUser) => { this.updateUI(updatedUser); });
+            const statsData = await API.getMeStats();
+            if (statsData.user) { UserState.setUser({...user, ...statsData.user}); }
+            this.renderStats(statsData.stats);
+            const posts = await API.getPosts();
+            const myPosts = posts.filter(p => p.author === user.username);
+            this.renderPosts(myPosts);
+            document.addEventListener('click', (e) => {
+                const menuContainer = document.querySelector('.profile-menu-container');
+                const menu = document.getElementById('profile-menu');
+                if (menuContainer && !menuContainer.contains(e.target)) { menu.classList.remove('active'); }
+            });
+        },
+
+        checkAdminRights: function() {
+            if (this.currentUser.username === 'Mairo' || this.currentUser.isOwner || this.currentUser.role === 'admin') {
+                this.isAdmin = true;
+                document.querySelectorAll('.admin-only').forEach(el => { el.style.display = el.tagName === 'DIV' ? 'block' : 'flex'; });
+            }
+        },
+
+        updateUI: function(user) {
+            document.getElementById('profile-name').textContent = user.username;
+            if (user.themeColor) { document.getElementById('settings-color').value = user.themeColor; }
+            const avatarEl = document.getElementById('profile-avatar');
+            if (user.avatar) {
+                avatarEl.innerHTML = `<img src="/uploads/avatars/${user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">`;
+            } else {
+                avatarEl.textContent = user.username[0].toUpperCase();
+            }
+        },
+
+        renderStats: function(stats) {
+            if (stats.level) {
+                const lvl = stats.level;
+                document.getElementById('xp-section').style.display = 'block';
+                document.getElementById('level-badge').style.display = 'inline-flex';
+                document.getElementById('level-text').textContent = 'Lv.' + lvl.current.level;
+                document.getElementById('level-name').textContent = lvl.current.name;
+                document.getElementById('total-xp').textContent = lvl.xp;
+                document.getElementById('xp-current').textContent = lvl.xpInLevel;
+                document.getElementById('xp-next').textContent = lvl.xpNeeded;
+                document.getElementById('progress-fill').style.width = lvl.progress + '%';
+                const ring = document.getElementById('level-ring');
+                if (lvl.current.level >= 1) {
+                    ring.style.display = 'block';
+                    ring.setAttribute('data-level', lvl.current.level);
+                }
+                this.currentLevel = lvl.current.level;
+                if (this.currentLevel >= 100001) { this.isAdminLevel = true; }
+            }
+            if (stats.posts !== undefined) { document.getElementById('stat-posts').textContent = stats.posts; }
+            if (stats.likes !== undefined) { document.getElementById('stat-likes').textContent = stats.likes; }
+            if (stats.comments !== undefined) { document.getElementById('stat-comments').textContent = stats.comments; }
+        },
+
+        toggleMenu: function(e) {
+            e.stopPropagation();
+            document.getElementById('profile-menu').classList.toggle('active');
+        },
+
+        openEditProfileModal: function() {
+            document.getElementById('edit-profile-modal').classList.add('active');
+            document.getElementById('profile-menu').classList.remove('active');
+        },
+
+        closeEditProfileModal: function() {
+            document.getElementById('edit-profile-modal').classList.remove('active');
+        },
+
+        openAdminModal: function() {
+            if (!this.isAdmin) return;
+            document.getElementById('admin-modal').classList.add('active');
+            document.getElementById('profile-menu').classList.remove('active');
+            const displayLevel = this.fakeLevel !== null ? this.fakeLevel : this.currentLevel;
+            document.getElementById('admin-current-level').textContent = 'Lv. ' + displayLevel;
+        },
+
+        closeAdminModal: function() {
+            document.getElementById('admin-modal').classList.remove('active');
+        },
+
+        closeModalOnBackground: function(e, modalId) {
+            if (e.target === e.currentTarget) {
+                document.getElementById(modalId).classList.remove('active');
+            }
+        },
+
+        changeLevel: function(delta) {
+            if (!this.isAdmin) return;
+            const baseLevel = this.fakeLevel !== null ? this.fakeLevel : this.currentLevel;
+            let newLevel = baseLevel + delta;
+            if (newLevel < 1) newLevel = 1;
+            this.setFakeLevel(newLevel);
+            document.getElementById('admin-current-level').textContent = 'Lv. ' + newLevel;
+        },
+
+        setLevel: function() {
+            if (!this.isAdmin) return;
+            const input = document.getElementById('admin-level-input');
+            let level = parseInt(input.value);
+            if (isNaN(level) || level < 1) {
+                alert('Введите уровень от 1');
+                return;
+            }
+            this.setFakeLevel(level);
+            document.getElementById('admin-current-level').textContent = 'Lv. ' + level;
+            input.value = '';
+        },
+
+        setAdminLevel: function() {
+            if (!this.isAdmin) return;
+            this.fakeLevel = 100001;
+            this.isAdminLevel = true;
+            this.setFakeLevel(100001);
+            document.getElementById('admin-current-level').textContent = 'Lv. 100001';
+        },
+
+        setFakeLevel: function(level) {
+            this.fakeLevel = level;
+            if (level >= 100001) { this.isAdminLevel = true; }
+            const ring = document.getElementById('level-ring');
+            if (ring) ring.setAttribute('data-level', level);
+            const levelData = this.getLevelData(level);
+            const levelText = document.getElementById('level-text');
+            const levelName = document.getElementById('level-name');
+            if (levelText) levelText.textContent = 'Lv.' + level;
+            if (levelName) levelName.textContent = levelData.name;
+            if (ring) { ring.style.display = level >= 1 ? 'block' : 'none'; }
+            if (level >= 100001) {
+                const xpCurrent = document.getElementById('xp-current');
+                const xpNext = document.getElementById('xp-next');
+                const progressFill = document.getElementById('progress-fill');
+                const totalXp = document.getElementById('total-xp');
+                if (xpCurrent) xpCurrent.textContent = '∞';
+                if (xpNext) xpNext.textContent = '∞';
+                if (progressFill) progressFill.style.width = '100%';
+                if (totalXp) totalXp.textContent = '∞';
+            }
+        },
+
+        getLevelData: function(level) {
+            if (level >= 100001) return { name: '🔥 Админ' };
+            if (level >= 101) return { name: '👑 Владелец' };
+            if (level >= 75) return { name: 'Легенда' };
+            if (level >= 50) return { name: 'Старожил' };
+            if (level >= 25) return { name: 'Активист' };
+            if (level >= 10) return { name: 'Пользователь' };
+            return { name: 'Новичок' };
+        },
+
+        resetLevel: function() {
+            this.fakeLevel = null;
+            this.isAdminLevel = false;
+            this.closeAdminModal();
+            location.reload();
+        },
+
+        updateColor: async function() {
+            const color = document.getElementById('settings-color').value;
+            UserState.setThemeColor(color);
+            document.body.style.background = color;
+            document.documentElement.style.setProperty('--user-theme', color);
+            const data = await API.updateColor(color);
+            if (data.user) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+                this.showToast('Цвет сохранён!', 'success');
+            } else if (data.error) {
+                this.showToast('Ошибка: ' + data.error, 'error');
+            }
+        },
+
+        updateAvatar: async function() {
+            const file = document.getElementById('settings-avatar').files[0];
+            if (!file) return alert('Выберите файл');
+            const formData = new FormData();
+            formData.append('avatar', file);
+            formData.append('type', 'avatar');
+            const data = await API.updateProfile(formData);
+            if (data.error) return alert(data.error);
+            if (data.user) { UserState.setAvatar(data.user.avatar); location.reload(); }
+        },
+
+        deleteAccount: async function() {
+            document.getElementById('profile-menu').classList.remove('active');
+            if (!confirm('Ты точно хочешь удалить аккаунт? Это необратимо!')) return;
+            if (!confirm('Последнее предупреждение! Все данные будут удалены навсегда!')) return;
+            const data = await API.deleteAccount();
+            if (data.success) { localStorage.removeItem('user'); window.location.href = '/'; }
+        },
+
+        renderPosts: function(posts) {
+            const container = document.getElementById('user-posts');
+            if (posts.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Нет постов</p>';
+                return;
+            }
+            container.innerHTML = posts.map(p => `<div class="card">${p.content}</div>`).join('');
+        },
+    };
+
+    app.init();
+    </script>
+</body>
+</html>

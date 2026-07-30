@@ -1,0 +1,28 @@
+[
+  {
+    "id": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "username": "Mairo",
+    "password": "60608387",
+    "avatar": "805d5501-6173-46d1-9fcd-1ffa4f6864d7.webp",
+    "themeColor": "#349d0d",
+    "friends": [
+      "76471fac-050e-4444-93ee-d75672cb74d8"
+    ],
+    "friendRequests": [],
+    "sentRequests": [],
+    "createdAt": 1770112986224,
+    "xp": 1000000000049
+  },
+  {
+    "id": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "username": "Angel",
+    "password": "1234",
+    "avatar": "fd0ef659-a77e-42d7-aab4-66e55fd3956c.webp",
+    "themeColor": "#212997",
+    "friends": [],
+    "friendRequests": [],
+    "sentRequests": [],
+    "createdAt": 1770646706275,
+    "xp": 295
+  }
+]

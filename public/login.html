@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Nexus</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container auth-container">
+        <div class="card">
+            <h1 class="auth-title">Nexus</h1>
+            <p class="auth-subtitle">Мини-соцсеть</p>
+            
+            <div id="login-form">
+                <input type="text" class="input" id="login-username" placeholder="Имя пользователя" maxlength="20">
+                <input type="password" class="input" id="login-password" placeholder="Пароль">
+                <button class="btn" onclick="auth.login()">Войти</button>
+                <p class="toggle-auth">
+                    Нет аккаунта? <a onclick="auth.toggleForm()">Зарегистрироваться</a>
+                </p>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <input type="text" class="input" id="reg-username" placeholder="Имя пользователя" maxlength="20">
+                <input type="password" class="input" id="reg-password" placeholder="Пароль (минимум 4 символа)">
+                <div style="margin-bottom: 12px; font-size: 14px; color: var(--text-secondary);">
+                    Аватар (опционально):
+                </div>
+                <input type="file" class="file-input" id="reg-avatar" accept="image/*" style="margin-bottom: 12px;">
+                <button class="btn" onclick="auth.register()">Создать аккаунт</button>
+                <p class="toggle-auth">
+                    Уже есть аккаунт? <a onclick="auth.toggleForm()">Войти</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+   <script>
+// Не вызываем init сразу, даём странице загрузиться
+setTimeout(() => {
+    auth.init();
+}, 100);
+</script>
+</body>
+</html>

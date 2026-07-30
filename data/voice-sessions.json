@@ -1,0 +1,22 @@
+{
+  "8f2a413f-db34-48cd-a461-8f340d110c2d": {
+    "userId": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "username": "Mairo",
+    "avatar": "534e921b-b328-4846-beb7-315ed25ad7d9.gif",
+    "channelId": "99248fe6-59d9-46f8-a493-ed562963ce04",
+    "serverId": "75836fb5-f1ea-4177-bae0-2dce1e9f6009",
+    "joinedAt": 1770740253621,
+    "muted": false,
+    "speaking": false
+  },
+  "3200028d-c403-42ea-9527-19d3b19e8f5f": {
+    "userId": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "username": "Angel",
+    "avatar": "fd0ef659-a77e-42d7-aab4-66e55fd3956c.webp",
+    "channelId": "99248fe6-59d9-46f8-a493-ed562963ce04",
+    "serverId": "75836fb5-f1ea-4177-bae0-2dce1e9f6009",
+    "joinedAt": 1770740440430,
+    "muted": false,
+    "speaking": false
+  }
+}

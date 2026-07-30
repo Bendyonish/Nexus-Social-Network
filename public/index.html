@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Лента — Nexus</title>
+
+<link rel="stylesheet" href="/css/styles.css">
+
+<script src="/js/userState.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/sounds.js"></script>
+<script src="/js/sidebar.js"></script>
+<script src="/js/posts.js" defer></script>
+
+<style>
+/* ===== CREATE BLOCK ===== */
+.create-box {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 20px auto;
+}
+
+.create-btn {
+    width: 150px;
+    height: 45px;
+    border-radius: 25px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: 0.2s;
+    border: none;
+}
+
+.create-btn:hover {
+    transform: translateY(-2px);
+}
+
+#create-post-btn {
+    background: var(--primary);
+    color: #fff;
+}
+
+#create-story-btn {
+    background: linear-gradient(45deg, #f093fb, #f5576c);
+    color: white;
+}
+
+/* ===== POSTS ===== */
+.post-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+/* ===== MODALS ===== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.modal {
+    background: var(--surface);
+    width: 90%;
+    max-width: 500px;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border: 1px solid var(--border);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text);
+}
+
+textarea, input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+}
+
+input[type="file"] {
+    padding: 10px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#post-preview, #story-preview {
+    min-height: 100px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    overflow: hidden;
+}
+
+#post-preview img, #post-preview video,
+#story-preview img, #story-preview video {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+}
+
+button.primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button.primary:hover {
+    opacity: 0.9;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- CREATE -->
+    <div class="create-box">
+        <button class="create-btn" id="create-post-btn">➕ Пост</button>
+        <button class="create-btn" id="create-story-btn">🔥 Сторис</button>
+    </div>
+
+    <!-- FEED -->
+    <div id="posts-container"></div>
+
+</div>
+
+<!-- ===== ADD POST MODAL ===== -->
+<div class="modal-overlay" id="post-modal">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <strong>Создать пост</strong>
+            <button class="modal-close" onclick="app.closeModal('post-modal')">×</button>
+        </div>
+
+        <textarea id="post-text" placeholder="Что у вас нового?" maxlength="280"></textarea>
+
+        <input type="file" id="post-media" accept="image/*,video/*">
+<label for="post-media" class="file-upload-btn">
+    📎 Выберите файл
+</label>
+<span class="file-name" id="post-file-name"></span>
+
+
+        <div id="post-preview">Превью появится здесь</div>
+
+        <button class="primary" onclick="app.submitPost()">Опубликовать</button>
+    </div>
+</div>
+
+<!-- ===== ADD STORY MODAL ===== -->
+<div class="modal-overlay" id="story-modal">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <strong>Добавить сторис</strong>
+            <button class="modal-close" onclick="app.closeModal('story-modal')">×</button>
+        </div>
+
+        <input type="file" id="story-media" accept="image/*,video/*">
+<label for="story-media" class="file-upload-btn">
+    📎 Выберите файл
+</label>
+<span class="file-name" id="story-file-name"></span>
+
+        <div id="story-preview">Превью появится здесь</div>
+
+        <input type="text" id="story-caption" placeholder="Подпись (опционально)" maxlength="100">
+
+        <button class="primary" onclick="app.submitStory()">Опубликовать</button>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,264 @@
+[
+  {
+    "id": "5d25e3d8-f0cc-4ea2-9b20-d5cd86a785b3",
+    "from": "938774f9-dead-4502-8fe5-a0d0caf7634c",
+    "fromUsername": "Mairo",
+    "to": "8ba73496-8dc6-4423-8737-2947b09f39cc",
+    "text": "Го в лигу",
+    "createdAt": 1769938168257,
+    "read": false
+  },
+  {
+    "id": "4498c135-066a-4f93-8548-623c15fd9880",
+    "from": "938774f9-dead-4502-8fe5-a0d0caf7634c",
+    "fromUsername": "Mairo",
+    "to": "8ba73496-8dc6-4423-8737-2947b09f39cc",
+    "text": "с попущами не играб",
+    "createdAt": 1769938185956,
+    "read": false
+  },
+  {
+    "id": "ea0fa982-6fac-49e5-81c2-158c121e5284",
+    "from": "f89831df-a8c2-412b-9aa3-d3d03cd352a8",
+    "fromUsername": "Mairo",
+    "to": "2fb23506-e0d9-4059-a985-345845130800",
+    "text": "го в лигу после",
+    "createdAt": 1770045266377,
+    "read": false
+  },
+  {
+    "id": "fce77eef-fdcc-4ec4-aa95-bae60608ea15",
+    "from": "2fb23506-e0d9-4059-a985-345845130800",
+    "fromUsername": "Angel",
+    "to": "f89831df-a8c2-412b-9aa3-d3d03cd352a8",
+    "text": "после чего?",
+    "createdAt": 1770045284350,
+    "read": false
+  },
+  {
+    "id": "1373c120-cae9-457c-b039-f3ad4a85323e",
+    "from": "f89831df-a8c2-412b-9aa3-d3d03cd352a8",
+    "fromUsername": "Mairo",
+    "to": "2fb23506-e0d9-4059-a985-345845130800",
+    "text": "после тестов\\",
+    "createdAt": 1770045295276,
+    "read": false
+  },
+  {
+    "id": "90d77b8a-d765-499e-a7c5-2c3f296dc1ad",
+    "from": "2fb23506-e0d9-4059-a985-345845130800",
+    "fromUsername": "Angel",
+    "to": "f89831df-a8c2-412b-9aa3-d3d03cd352a8",
+    "text": "каких нафиг тестов",
+    "createdAt": 1770045309873,
+    "read": false
+  },
+  {
+    "id": "0842e786-43c9-4f7c-be27-320d92fcad46",
+    "from": "2fb23506-e0d9-4059-a985-345845130800",
+    "fromUsername": "Angel",
+    "to": "f89831df-a8c2-412b-9aa3-d3d03cd352a8",
+    "text": "ты что пекарь?",
+    "createdAt": 1770045318983,
+    "read": false
+  },
+  {
+    "id": "52b64fea-a5cb-4c86-890d-63aa0f3fc133",
+    "from": "f89831df-a8c2-412b-9aa3-d3d03cd352a8",
+    "fromUsername": "Mairo",
+    "to": "2fb23506-e0d9-4059-a985-345845130800",
+    "text": "тестов сайта риотов очевидно",
+    "createdAt": 1770045327531,
+    "read": false
+  },
+  {
+    "id": "a4cbc6cc-22ef-450a-9919-8f478f672982",
+    "from": "f89831df-a8c2-412b-9aa3-d3d03cd352a8",
+    "fromUsername": "Mairo",
+    "to": "2fb23506-e0d9-4059-a985-345845130800",
+    "text": "надо будет сделать отправку вход и регистрацию на enter",
+    "createdAt": 1770045465969,
+    "read": false
+  },
+  {
+    "id": "2bd00804-6e1f-4965-98d0-7b50d382512b",
+    "from": "2fb23506-e0d9-4059-a985-345845130800",
+    "fromUsername": "Angel",
+    "to": "f89831df-a8c2-412b-9aa3-d3d03cd352a8",
+    "text": "логично логично",
+    "createdAt": 1770045485551,
+    "read": false
+  },
+  {
+    "id": "ad675741-0020-426e-b853-1df764b82f5f",
+    "from": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "fromUsername": "Mairo",
+    "to": "76471fac-050e-4444-93ee-d75672cb74d8",
+    "text": "ввв",
+    "createdAt": 1770646545411,
+    "read": false
+  },
+  {
+    "id": "ddbd4735-6889-496c-89e8-15d48154c089",
+    "from": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "fromUsername": "Mairo",
+    "to": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "text": "ggg",
+    "createdAt": 1770647726809,
+    "read": true
+  },
+  {
+    "id": "3e8dc861-6fc1-4d7c-864e-a591882d853f",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "ыыы",
+    "createdAt": 1770648132681,
+    "read": true
+  },
+  {
+    "id": "0cfba572-8813-4293-9485-8dd215cdf2f7",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "dsdsd",
+    "createdAt": 1770648273121,
+    "read": true
+  },
+  {
+    "id": "49717b38-3b89-443b-bf36-da5f53be21e8",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "dsdsd",
+    "createdAt": 1770648274514,
+    "read": true
+  },
+  {
+    "id": "1cf33787-1205-4fb5-ae2c-de95b658153d",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "dsdsdsdsd",
+    "createdAt": 1770648275941,
+    "read": true
+  },
+  {
+    "id": "005ec2ae-6fde-45cb-9ec4-03fc9a8f9df8",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "fsdfsdf",
+    "createdAt": 1770648316688,
+    "read": true
+  },
+  {
+    "id": "d342439e-35d6-4da5-bba0-80ee0387b34b",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "ввв",
+    "createdAt": 1770648872198,
+    "read": true
+  },
+  {
+    "id": "14335e2b-a178-4d9e-be06-db3aa85c744d",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "ddd",
+    "createdAt": 1770649517852,
+    "read": true
+  },
+  {
+    "id": "66d0f0b7-cc83-4725-9900-730ca22ecd68",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "ddd",
+    "createdAt": 1770649530901,
+    "read": true
+  },
+  {
+    "id": "a05c8bf9-cde5-46f5-8be7-9d5368b87ff2",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "сссс",
+    "createdAt": 1770649745849,
+    "read": true
+  },
+  {
+    "id": "d36b9697-f2a7-4e0e-8045-153e0dd72ca0",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "вввввввввввв",
+    "createdAt": 1770650005195,
+    "read": true
+  },
+  {
+    "id": "2f561e01-cf84-45c6-8403-88e811d830bf",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "text": "ddddddd",
+    "createdAt": 1770714825800,
+    "read": true
+  },
+  {
+    "id": "19bdb960-386e-4545-9945-959f4537f93f",
+    "from": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "fromUsername": "Mairo",
+    "to": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "text": "IO369G",
+    "createdAt": 1770724406144,
+    "read": true
+  },
+  {
+    "id": "eeb7f974-0239-495d-8317-c20799140722",
+    "channelId": "86d63696-3595-4646-b662-86595d32c871",
+    "author": "Mairo",
+    "authorId": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "authorAvatar": "534e921b-b328-4846-beb7-315ed25ad7d9.gif",
+    "content": "да",
+    "createdAt": 1770738493945
+  },
+  {
+    "id": "e7bd6b6e-f911-4eab-ba95-29c3e4671559",
+    "channelId": "86d63696-3595-4646-b662-86595d32c871",
+    "author": "Mairo",
+    "authorId": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "authorAvatar": "534e921b-b328-4846-beb7-315ed25ad7d9.gif",
+    "content": "вот я печатаю и это слышно",
+    "createdAt": 1770738536602
+  },
+  {
+    "id": "383037e5-8e1f-4f6f-975b-6cd8f9f7a0f3",
+    "channelId": "86d63696-3595-4646-b662-86595d32c871",
+    "author": "Mairo",
+    "authorId": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "authorAvatar": "534e921b-b328-4846-beb7-315ed25ad7d9.gif",
+    "authorUsername": "Mairo",
+    "content": "ddd",
+    "createdAt": 1770738796116
+  },
+  {
+    "id": "8f9dffc3-e337-42df-9b6a-0135f5fc94c5",
+    "from": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "fromUsername": "Mairo",
+    "to": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "text": "X3HO36",
+    "createdAt": 1770738841534,
+    "read": true
+  },
+  {
+    "id": "30ca732f-13aa-4844-b148-3178cc53bcaf",
+    "from": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "fromUsername": "Mairo",
+    "to": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "text": "Привет! Приглашаю тебя на сервер \"ыыы\". Код приглашения: KUCWMW",
+    "createdAt": 1770898624891,
+    "read": true
+  }
+]

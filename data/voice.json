@@ -1,0 +1,35 @@
+[
+  {
+    "id": "d2889ee1-c92f-4328-b768-e62a0899af2c",
+    "type": "voice",
+    "from": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "fromUsername": "Angel",
+    "to": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "audioUrl": "/uploads/voice/voice-1770647663215-738535576.webm",
+    "duration": 4,
+    "createdAt": 1770647663219,
+    "read": true
+  },
+  {
+    "id": "a59a8883-5e64-456a-a954-1ee93bd76043",
+    "type": "voice",
+    "from": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "fromUsername": "Mairo",
+    "to": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "audioUrl": "/uploads/voice/voice-1770647695638-231823368.webm",
+    "duration": 2,
+    "createdAt": 1770647695639,
+    "read": true
+  },
+  {
+    "id": "cc571758-70f6-424f-afdc-d70c5e62201e",
+    "type": "voice",
+    "from": "a7fcfd0e-d215-4dc0-87bd-16e213f64873",
+    "fromUsername": "Mairo",
+    "to": "ec4371e8-837f-4dbd-9756-59dd745a9c6e",
+    "audioUrl": "/uploads/voice/voice-1770647703962-848518178.webm",
+    "duration": 1,
+    "createdAt": 1770647703964,
+    "read": true
+  }
+]
