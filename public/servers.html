@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервера - Nexus</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/userState.js"></script>
+    <script src="/js/sounds.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <style>
+        .servers-layout { display: flex; height: calc(100vh - 100px); gap: 10px; }
+        .servers-list { width: 80px; background: var(--surface); border-radius: 12px; padding: 10px; overflow-y: auto; }
+        .server-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 10px; transition: 0.2s; font-size: 24px; }
+        .server-icon:hover, .server-icon.active { border-radius: 16px; }
+        .server-icon.add { background: var(--success); font-size: 30px; }
+        
+        .channels-list { width: 240px; background: var(--surface); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; }
+        .channels-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .channels-container { flex: 1; overflow-y: auto; }
+        
+        .channel { padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+        .channel:hover, .channel.active { background: var(--bg); }
+        .channel-icon { font-size: 18px; }
+        
+        .delete-channel { 
+            width: 24px; 
+            height: 24px; 
+            border-radius: 4px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            opacity: 0; 
+            transition: all 0.2s; 
+            color: #ef4444; 
+            font-size: 18px; 
+            font-weight: bold; 
+        }
+        .channel:hover .delete-channel { opacity: 0.6; }
+        .delete-channel:hover { opacity: 1 !important; background: rgba(239, 68, 68, 0.2); }
+        
+        .chat-area { flex: 1; background: var(--surface); border-radius: 12px; display: flex; flex-direction: column; min-width: 0; }
+        .chat-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; }
+        .chat-input { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        
+        .voice-channel { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); }
+        
+        /* ===== ПАНЕЛЬ УЧАСТНИКОВ ===== */
+        .members-list { 
+            width: 200px; 
+            background: var(--surface); 
+            border-radius: 12px; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .members-header {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+        }
+        
+        .member-item:hover {
+            background: var(--bg);
+        }
+        
+        .member-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .member-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .member-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .member-name {
+            font-size: 14px;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .member-status {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        /* ===== ГОЛОСОВОЙ ЧАТ УЧАСТНИКИ ===== */
+        .voice-users {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px;
+            background: var(--bg);
+            border-radius: 12px;
+            margin: 10px 15px;
+            min-height: 80px;
+        }
+        
+        .voice-user {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 10px;
+            border-radius: 12px;
+            background: var(--surface);
+            min-width: 70px;
+            position: relative;
+        }
+        
+        .voice-user.speaking {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+            border: 2px solid var(--success);
+        }
+        
+        .voice-user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .voice-user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .voice-user-mute {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 20px;
+            height: 20px;
+            background: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border: 2px solid var(--surface);
+        }
+        
+        .voice-user-name {
+            font-size: 12px;
+            color: var(--text);
+            text-align: center;
+            max-width: 70px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* ===== МОДАЛЬНЫЕ ОКНА ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .modal-content {
+            background: var(--surface);
+            padding: 25px;
+            border-radius: 16px;
+            max-width: 450px;
+            width: 90%;
+            border: 1px solid var(--border);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        /* ===== ВХОД ПО КОДУ ===== */
+        .join-code-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .join-code-input input {
+            flex: 1;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+        }
+        
+        /* ===== ПРИГЛАШЕНИЯ ===== */
+        .invite-section {
+            margin-bottom: 20px;
+        }
+        
+        .invite-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .invite-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .invite-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .invite-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        /* ===== ПЛАВАЮЩАЯ ПАНЕЛЬ ГС ===== */
+        .voice-floating-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            border: 2px solid var(--success);
+            border-radius: 16px;
+            padding: 15px 25px;
+            display: none;
+            align-items: center;
+            gap: 20px;
+            z-index: 9999;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        
+        .voice-floating-panel.active {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
+        .voice-floating-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .voice-floating-indicator {
+            width: 10px;
+            height: 10px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+        
+        .voice-floating-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .voice-floating-btn.mute {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .voice-floating-btn.mute.muted {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .voice-floating-btn.disconnect {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .voice-floating-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* ===== ОСТАЛЬНЫЕ СТИЛИ ===== */
+        .voice-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px solid var(--success);
+            color: white;
+            z-index: 9998;
+            display: none;
+            min-width: 250px;
+        }
+        .voice-panel.active { display: block; animation: pulse 2s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+        }
+        
+        .voice-controls { display: flex; gap: 10px; margin-top: 15px; }
+        .voice-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-size: 16px; transition: all 0.2s; }
+        .voice-btn.mute { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .voice-btn.mute:hover { background: rgba(239, 68, 68, 0.3); }
+        .voice-btn.mute.muted { background: #ef4444; color: white; }
+        .voice-btn.leave { background: rgba(255, 255, 255, 0.1); color: white; }
+        .voice-btn.leave:hover { background: rgba(255, 255, 255, 0.2); }
+        
+        .voice-status { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .voice-indicator { width: 12px; height: 12px; background: #22c55e; border-radius: 50%; animation: blink 1s infinite; }
+        .voice-indicator.muted { background: #ef4444; animation: none; }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .remote-audio-container { display: none; }
+        
+        .mic-error {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 16px;
+            z-index: 10001;
+            display: none;
+            text-align: center;
+        }
+        .mic-error.active { display: block; }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
+        }
+        
+        .section-title {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        .server-actions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+        
+        @media (max-width: 1200px) {
+            .members-list { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 1400px;">
+        <h2 style="margin-bottom: 20px;">🖥️ Сервера</h2>
+        
+        <div class="servers-layout">
+            <!-- Список серверов -->
+            <div class="servers-list" id="servers-list">
+                <div class="server-icon add" onclick="app.createServer()" title="Создать сервер">+</div>
+                <div class="server-icon" onclick="app.showJoinModal()" title="Войти по коду" style="background: var(--primary); font-size: 20px;">🔗</div>
+            </div>
+            
+            <!-- Каналы сервера -->
+            <div class="channels-list" id="channels-list" style="display: none;">
+                <div class="channels-header">
+                    <h3 id="current-server-name">Сервер</h3>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn btn-secondary" onclick="app.showInviteModal()" style="width: auto; padding: 5px 10px;" title="Пригласить">👤+</button>
+                        <button class="btn btn-secondary" onclick="app.showInvite()" style="width: auto; padding: 5px 10px;">🔗</button>
+                    </div>
+                </div>
+                <div class="section-title">Каналы</div>
+                <div class="channels-container" id="channels-container"></div>
+            </div>
+            
+            <!-- Область чата -->
+            <div class="chat-area" id="chat-area" style="display: none;">
+                <div class="chat-header">
+                    <span id="current-channel-name">#general</span>
+                    <span id="voice-status" style="color: var(--success); display: none;">🔊 Голосовой чат активен</span>
+                </div>
+                
+                <!-- Участники голосового канала -->
+                <div class="voice-users" id="voice-users" style="display: none;"></div>
+                
+                <div class="chat-messages" id="messages-container"></div>
+                <div class="chat-input" id="text-input-area">
+                    <input type="text" class="input" id="message-input" placeholder="Написать в канал..." style="margin-bottom: 0; flex: 1;" onkeypress="if(event.key==='Enter') app.sendMessage()">
+                    <button class="btn" onclick="app.sendMessage()" style="width: auto;">Отправить</button>
+                </div>
+                <div class="chat-input" id="voice-controls" style="display: none;">
+                    <button class="btn btn-danger" onclick="app.leaveVoice()">🔇 Покинуть канал</button>
+                </div>
+            </div>
+            
+            <!-- Список участников сервера -->
+            <div class="members-list" id="members-list" style="display: none;">
+                <div class="members-header">Участники — <span id="members-count">0</span></div>
+                <div id="members-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Плавающая панель голосового чата -->
+    <div class="voice-floating-panel" id="voice-floating-panel">
+        <div class="voice-floating-info">
+            <div class="voice-floating-indicator"></div>
+            <div>
+                <div style="font-weight: bold; font-size: 14px;">🔊 Голосовой канал</div>
+                <div style="font-size: 12px; opacity: 0.8;" id="floating-channel-name">General</div>
+            </div>
+        </div>
+        <button class="voice-floating-btn mute" id="floating-mute-btn" onclick="app.toggleMute()">🎤</button>
+        <button class="voice-floating-btn disconnect" onclick="app.leaveVoice()">📞</button>
+    </div>
+
+    <!-- Модальное окно входа по коду -->
+    <div class="modal-overlay" id="join-modal" onclick="if(event.target===this)app.closeJoinModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="modal-title">🔗 Войти на сервер</span>
+                <button class="modal-close" onclick="app.closeJoinModal()">×</button>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">Введите код приглашения:</p>
+            <div class="join-code-input">
+                <input type="text" class="input" id="join-code" placeholder="ABC123" maxlength="6" style="margin-bottom: 0;">
+            </div>
+            <button class="btn" onclick="app.joinByCode()">Войти</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно приглашения друзей -->
+    <div class="modal-overlay" id="invite-friends-modal" onclick="if(event.target===this)app.closeInviteModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="modal-title">👤 Пригласить друзей</span>
+                <button class="modal-close" onclick="app.closeInviteModal()">×</button>
+            </div>
+            <div class="invite-section">
+                <p style="color: var(--text-secondary); margin-bottom: 10px;">Ваши друзья:</p>
+                <div class="invite-list" id="invite-friends-list">
+                    <div class="empty-state">Загрузка...</div>
+                </div>
+            </div>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                <p style="color: var(--text-secondary); margin-bottom: 10px;">Или поделитесь кодом:</p>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" class="input" id="invite-code-display" readonly style="flex: 1; margin-bottom: 0; text-align: center; font-family: monospace;">
+                    <button class="btn btn-secondary" onclick="app.copyInviteCode()" style="width: auto;">Копировать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно кода приглашения -->
+    <div class="modal-overlay" id="invite-modal" onclick="if(event.target===this)app.closeInvite()">
+        <div class="card" style="max-width: 400px;" onclick="event.stopPropagation()">
+            <h3>Пригласить друзей</h3>
+            <p style="margin: 15px 0; color: var(--text-secondary);">Отправьте этот код друзьям:</p>
+            <div style="background: var(--bg); padding: 15px; border-radius: 8px; font-family: monospace; font-size: 24px; text-align: center; letter-spacing: 5px;" id="invite-code">ABC123</div>
+            <button class="btn" onclick="app.copyInvite()" style="margin-top: 15px;">Копировать</button>
+            <button class="btn btn-secondary" onclick="app.closeInvite()" style="margin-top: 10px;">Закрыть</button>
+        </div>
+    </div>
+
+    <div class="remote-audio-container" id="audio-container"></div>
+
+    <div class="mic-error" id="mic-error">
+        <div style="font-size: 48px; margin-bottom: 10px;">🎤</div>
+        <div style="font-weight: bold; margin-bottom: 10px;">Микрофон не найден</div>
+        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 15px;">
+            Проверьте, что микрофон подключен<br>
+            и разрешите доступ в браузере
+        </div>
+        <button class="btn" onclick="document.getElementById('mic-error').classList.remove('active')">Закрыть</button>
+    </div>
+
+    <script>
+        // ===== ГЛОБАЛЬНОЕ СОСТОЯНИЕ ГОЛОСОВОГО ЧАТА =====
+        window.VoiceState = {
+            ws: null,
+            localStream: null,
+            peerConnections: {},
+            currentChannel: null,
+            currentServer: null,
+            isMuted: false,
+            voiceUsers: new Map(),
+            myUsername: '',
+            
+            save() {
+                const data = {
+                    channelId: this.currentChannel?.id,
+                    channelName: this.currentChannel?.name,
+                    serverId: this.currentServer?.id,
+                    serverName: this.currentServer?.name,
+                    isMuted: this.isMuted,
+                    myUsername: this.myUsername
+                };
+                sessionStorage.setItem('voiceState', JSON.stringify(data));
+            },
+            
+            load() {
+                const saved = sessionStorage.getItem('voiceState');
+                return saved ? JSON.parse(saved) : null;
+            },
+            
+            clear() {
+                sessionStorage.removeItem('voiceState');
+            }
+        };
+
+        const app = {
+            servers: [],
+            currentServer: null,
+            currentChannel: null,
+            refreshInterval: null,
+            currentUser: null,
+            isSelectingChannel: false,
+            cachedUsers: new Map(), // Кэш пользователей
+
+            init: async function() {
+                const token = localStorage.getItem('token');
+                if (!token) { 
+                    window.location.href = '/login.html'; 
+                    return; 
+                }
+                
+                try {
+                    const meRes = await fetch('/api/me', {
+                        headers: { 'Authorization': token }
+                    });
+                    const meData = await meRes.json();
+                    
+                    if (!meData.user) {
+                        throw new Error('No user');
+                    }
+                    
+                    this.currentUser = meData.user;
+                    VoiceState.myUsername = meData.user.username;
+                    localStorage.setItem('user', JSON.stringify(meData.user));
+                    
+                    // Кэшируем текущего пользователя
+                    this.cachedUsers.set(meData.user.id, meData.user);
+                    
+                    await this.checkVoiceRestore();
+                    await this.loadServers();
+                } catch (err) {
+                    console.error('Init error:', err);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login.html';
+                }
+            },
+
+            checkVoiceRestore: async function() {
+                const saved = VoiceState.load();
+                if (!saved || !saved.channelId) return;
+                
+                this.showFloatingVoicePanel(saved.channelName);
+            },
+
+            showFloatingVoicePanel: function(channelName) {
+                const panel = document.getElementById('voice-floating-panel');
+                document.getElementById('floating-channel-name').textContent = channelName || 'Голосовой канал';
+                
+                const muteBtn = document.getElementById('floating-mute-btn');
+                if (VoiceState.isMuted) {
+                    muteBtn.textContent = '🔇';
+                    muteBtn.classList.add('muted');
+                } else {
+                    muteBtn.textContent = '🎤';
+                    muteBtn.classList.remove('muted');
+                }
+                
+                panel.classList.add('active');
+            },
+
+            hideFloatingVoicePanel: function() {
+                document.getElementById('voice-floating-panel').classList.remove('active');
+            },
+
+            // ===== ЗАГРУЗКА ПОЛЬЗОВАТЕЛЕЙ =====
+            
+            async loadUser(userId) {
+                // Проверяем кэш
+                if (this.cachedUsers.has(userId)) {
+                    return this.cachedUsers.get(userId);
+                }
+                
+                try {
+                    // Пытаемся получить из друзей
+                    const friends = await API.getFriends();
+                    const friend = friends.friends?.find(f => f.id === userId);
+                    if (friend) {
+                        this.cachedUsers.set(userId, friend);
+                        return friend;
+                    }
+                } catch (e) {}
+                
+                // Если не нашли - возвращаем объект с ID
+                const fallback = { id: userId, username: 'User_' + userId.slice(0, 4) };
+                this.cachedUsers.set(userId, fallback);
+                return fallback;
+            },
+
+            loadServers: async function() {
+                console.log('Загрузка серверов...');
+                try {
+                    const servers = await API.getServers();
+                    this.servers = servers.map(s => ({
+                        ...s,
+                        channels: s.channels || []
+                    }));
+                    console.log('Загружено серверов:', this.servers.length);
+                    
+                    const container = document.getElementById('servers-list');
+                    container.innerHTML = `
+                        <div class="server-icon add" onclick="app.createServer()" title="Создать сервер">+</div>
+                        <div class="server-icon" onclick="app.showJoinModal()" title="Войти по коду" style="background: var(--primary); font-size: 20px;">🔗</div>
+                    `;
+                    
+                    this.servers.forEach(s => {
+                        const icon = document.createElement('div');
+                        icon.className = 'server-icon' + (s.id === (this.currentServer?.id) ? ' active' : '');
+                        icon.textContent = s.name[0].toUpperCase();
+                        icon.title = s.name;
+                        icon.onclick = () => this.selectServer(s);
+                        container.appendChild(icon);
+                    });
+                } catch (err) {
+                    console.error('Ошибка загрузки серверов:', err);
+                }
+            },
+
+            // ===== МОДАЛЬНЫЕ ОКНА =====
+            
+            showJoinModal: function() {
+                document.getElementById('join-modal').classList.add('active');
+                document.getElementById('join-code').focus();
+            },
+            
+            closeJoinModal: function() {
+                document.getElementById('join-modal').classList.remove('active');
+                document.getElementById('join-code').value = '';
+            },
+            
+            joinByCode: async function() {
+                const code = document.getElementById('join-code').value.trim().toUpperCase();
+                if (!code) return;
+                
+                try {
+                    const res = await API.joinServer(code);
+                    if (res.error) {
+                        alert(res.error);
+                        return;
+                    }
+                    
+                    this.closeJoinModal();
+                    await this.loadServers();
+                    
+                    if (res.server) {
+                        this.selectServer(res.server);
+                    }
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            },
+
+            showInviteModal: async function() {
+                if (!this.currentServer) return;
+                
+                try {
+                    const friends = await API.getFriends();
+                    const container = document.getElementById('invite-friends-list');
+                    
+                    if (!friends.friends || friends.friends.length === 0) {
+                        container.innerHTML = '<div class="empty-state">У вас пока нет друзей</div>';
+                    } else {
+                        const serverMemberIds = this.currentServer.members || [];
+                        const availableFriends = friends.friends.filter(f => !serverMemberIds.includes(f.id));
+                        
+                        if (availableFriends.length === 0) {
+                            container.innerHTML = '<div class="empty-state">Все друзья уже на сервере</div>';
+                        } else {
+                            container.innerHTML = availableFriends.map(f => `
+                                <div class="invite-item">
+                                    <div class="invite-user">
+                                        <div class="invite-avatar">
+                                            ${f.avatar ? `<img src="/uploads/avatars/${f.avatar}" style="width:100%;height:100%;border-radius:50%;">` : f.username[0].toUpperCase()}
+                                        </div>
+                                        <span>${f.username}</span>
+                                    </div>
+                                    <button class="btn btn-secondary" onclick="app.inviteFriend('${f.id}')" style="width: auto; padding: 5px 15px;">Пригласить</button>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                    
+                    const inviteRes = await API.createInvite(this.currentServer.id);
+                    document.getElementById('invite-code-display').value = inviteRes.code;
+                    
+                    document.getElementById('invite-friends-modal').classList.add('active');
+                } catch (err) {
+                    console.error('Ошибка загрузки друзей:', err);
+                }
+            },
+            
+            closeInviteModal: function() {
+                document.getElementById('invite-friends-modal').classList.remove('active');
+            },
+            
+            inviteFriend: async function(friendId) {
+                try {
+                    const inviteRes = await API.createInvite(this.currentServer.id);
+                    const message = `Привет! Приглашаю тебя на сервер "${this.currentServer.name}". Код приглашения: ${inviteRes.code}`;
+                    await API.sendMessage(friendId, message);
+                    
+                    alert('Приглашение отправлено!');
+                    this.closeInviteModal();
+                } catch (err) {
+                    alert('Ошибка отправки приглашения: ' + err.message);
+                }
+            },
+            
+            copyInviteCode: function() {
+                const code = document.getElementById('invite-code-display').value;
+                navigator.clipboard.writeText(code);
+                alert('Код скопирован!');
+            },
+
+            selectServer: async function(server) {
+                if (!server) return;
+                
+                console.log('Выбор сервера:', server.id);
+                this.currentServer = server;
+                await this.loadServers();
+                
+                const channelsList = document.getElementById('channels-list');
+                const serverNameEl = document.getElementById('current-server-name');
+                const container = document.getElementById('channels-container');
+                const membersList = document.getElementById('members-list');
+                
+                channelsList.style.display = 'flex';
+                membersList.style.display = 'flex';
+                serverNameEl.textContent = server.name;
+                container.innerHTML = '';
+                
+                await this.loadMembers(server);
+                
+                if (!server.channels || server.channels.length === 0) {
+                    container.innerHTML = '<div class="empty-state">📭 Нет каналов<br><span style="font-size: 12px;">Создайте первый канал</span></div>';
+                } else {
+                    server.channels.forEach(c => {
+                        const ch = document.createElement('div');
+                        ch.className = 'channel' + (c.id === (this.currentChannel?.id) ? ' active' : '') + (c.type === 'voice' ? ' voice-channel' : '');
+                        
+                        let deleteBtn = '';
+                        if (server.ownerId === this.currentUser.id && server.channels.length > 1) {
+                            deleteBtn = `<span class="delete-channel" onclick="event.stopPropagation(); app.deleteChannel('${c.id}')" title="Удалить канал">×</span>`;
+                        }
+                        
+                        ch.innerHTML = `
+                            <span class="channel-icon">${c.type === 'voice' ? '🔊' : '#'}</span>
+                            <span style="flex: 1;">${c.name}</span>
+                            ${deleteBtn}
+                        `;
+                        ch.onclick = () => this.selectChannel(c);
+                        container.appendChild(ch);
+                    });
+                }
+                
+                const createBtn = document.createElement('button');
+                createBtn.className = 'btn btn-secondary';
+                createBtn.style.cssText = 'width: 100%; margin-top: 10px;';
+                createBtn.textContent = '+ Создать канал';
+                createBtn.onclick = () => this.createChannel();
+                container.appendChild(createBtn);
+                
+                const actions = document.createElement('div');
+                actions.className = 'server-actions';
+                
+                if (server.ownerId === this.currentUser.id) {
+                    actions.innerHTML = `<button class="btn btn-danger" onclick="app.deleteServer()" style="width: 100%;">🗑️ Удалить сервер</button>`;
+                } else {
+                    actions.innerHTML = `<button class="btn btn-secondary" onclick="app.leaveServer()" style="width: 100%;">🚪 Покинуть сервер</button>`;
+                }
+                container.appendChild(actions);
+                
+                // Проверяем сохранённое состояние голосового чата
+                const saved = VoiceState.load();
+                if (saved && saved.serverId === server.id && saved.channelId) {
+                    const channel = server.channels.find(c => c.id === saved.channelId);
+                    if (channel && channel.type === 'voice' && VoiceState.ws) {
+                        // Уже подключены к этому каналу
+                        setTimeout(() => this.selectChannel(channel), 100);
+                    }
+                }
+            },
+
+            loadMembers: async function(server) {
+                const container = document.getElementById('members-container');
+                const countEl = document.getElementById('members-count');
+                
+                if (!server.members || server.members.length === 0) {
+                    container.innerHTML = '<div class="empty-state">Нет участников</div>';
+                    countEl.textContent = '0';
+                    return;
+                }
+                
+                countEl.textContent = server.members.length;
+                container.innerHTML = '<div class="empty-state">Загрузка...</div>';
+                
+                // Загружаем информацию о каждом участнике
+                const memberPromises = server.members.map(id => this.loadUser(id));
+                const users = await Promise.all(memberPromises);
+                
+                container.innerHTML = users.map(u => {
+                    const isOwner = u.id === server.ownerId;
+                    const isMe = u.id === this.currentUser.id;
+                    return `
+                        <div class="member-item">
+                            <div class="member-avatar">
+                                ${u.avatar ? `<img src="/uploads/avatars/${u.avatar}" alt="${u.username}">` : u.username[0].toUpperCase()}
+                            </div>
+                            <div class="member-info">
+                                <div class="member-name">${u.username} ${isMe ? '(Вы)' : ''} ${isOwner ? '👑' : ''}</div>
+                                <div class="member-status">🟢 В сети</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+                        lastChannelMessagesSignature: '',
+
+            selectChannel: async function(channel) {
+                if (this.isSelectingChannel) return;
+                this.isSelectingChannel = true;
+                
+                if (!channel || !this.currentServer) {
+                    this.isSelectingChannel = false;
+                    return;
+                }
+                
+                // Проверяем, не в этом ли канале уже сидим
+                if (VoiceState.currentChannel?.id === channel.id && VoiceState.ws) {
+                    this.isSelectingChannel = false;
+                    return;
+                }
+                
+                // Если переключаемся с голосового на текстовый - показываем плавающую панель
+                if (VoiceState.currentChannel?.type === 'voice' && channel.type !== 'voice' && VoiceState.ws) {
+                    document.getElementById('voice-users').style.display = 'none';
+                    document.getElementById('voice-controls').style.display = 'none';
+                    document.getElementById('voice-status').style.display = 'none';
+                    this.showFloatingVoicePanel(VoiceState.currentChannel?.name);
+                }
+                
+                // Если переключаемся на другой голосовой канал - отключаемся от старого
+                if (VoiceState.currentChannel?.type === 'voice' && channel.type === 'voice' && VoiceState.ws) {
+                    this.leaveVoice();
+                }
+                
+                this.currentChannel = channel;
+                this.lastChannelMessagesSignature = ''; // Сбрасываем кэш при переключении канала
+                this.updateChannelUI();
+                
+                document.getElementById('chat-area').style.display = 'flex';
+                document.getElementById('current-channel-name').textContent = 
+                    (channel.type === 'voice' ? '🔊 ' : '#') + channel.name;
+                
+                if (channel.type === 'text') {
+                    document.getElementById('text-input-area').style.display = 'flex';
+                    document.getElementById('voice-controls').style.display = 'none';
+                    document.getElementById('voice-status').style.display = 'none';
+                    document.getElementById('voice-users').style.display = 'none';
+                    await this.loadMessages();
+                    if (this.refreshInterval) clearInterval(this.refreshInterval);
+                    this.refreshInterval = setInterval(() => {
+                        if (!document.hidden && this.currentChannel?.id === channel.id) {
+                            this.loadMessages();
+                        }
+                    }, 4000);
+                    
+                    // Показываем плавающую панель если в голосовом канале
+                    if (VoiceState.ws && VoiceState.currentChannel) {
+                        this.showFloatingVoicePanel(VoiceState.currentChannel.name);
+                    }
+                } else {
+                    document.getElementById('text-input-area').style.display = 'none';
+                    document.getElementById('voice-controls').style.display = 'flex';
+                    document.getElementById('voice-status').style.display = 'inline';
+                    document.getElementById('voice-users').style.display = 'flex';
+                    if (this.refreshInterval) clearInterval(this.refreshInterval);
+                    
+                    this.hideFloatingVoicePanel();
+                    
+                    // Подключаемся к голосовому каналу
+                    if (!VoiceState.ws) {
+                        setTimeout(() => this.joinVoice(), 100);
+                    }
+                }
+                
+                setTimeout(() => {
+                    this.isSelectingChannel = false;
+                }, 300);
+            },
+
+            updateChannelUI: function() {
+                document.querySelectorAll('.channel').forEach(ch => {
+                    ch.classList.remove('active');
+                });
+                
+                const channels = document.querySelectorAll('.channel');
+                channels.forEach(ch => {
+                    if (ch.onclick && ch.onclick.toString().includes(this.currentChannel.id)) {
+                        ch.classList.add('active');
+                    }
+                });
+            },
+
+            loadMessages: async function() {
+                if (!this.currentChannel || this.currentChannel.type !== 'text') return;
+                
+                try {
+                    const messages = await API.getChannelMessages(this.currentChannel.id);
+                    const container = document.getElementById('messages-container');
+                    
+                    if (!Array.isArray(messages)) {
+                        container.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>';
+                        return;
+                    }
+                    
+                    // Проверяем, изменились ли сообщения с прошлого обновления
+                    const lastMsg = messages[messages.length - 1];
+                    const newSignature = messages.length + '_' + (lastMsg ? (lastMsg.id || lastMsg.createdAt) : 'empty');
+                    
+                    if (newSignature === this.lastChannelMessagesSignature) return;
+                    this.lastChannelMessagesSignature = newSignature;
+                    
+                    if (messages.length === 0) {
+                        container.innerHTML = '<div class="empty-state">Нет сообщений.<br>Напишите первое!</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = messages.map(msg => {
+                        const author = msg.author || 'Неизвестный';
+                        const content = msg.content || '';
+                        const time = msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString() : '';
+                        
+                        return `
+                            <div style="padding: 10px; border-bottom: 1px solid var(--border); margin-bottom: 5px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                        ${author[0].toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <span style="font-weight: bold; color: var(--text);">${author}</span>
+                                        <span style="color: var(--text-secondary); font-size: 12px; margin-left: 8px;">${time}</span>
+                                    </div>
+                                </div>
+                                <div style="margin-left: 42px; color: var(--text);">${content}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    container.scrollTop = container.scrollHeight;
+                } catch (err) {
+                    console.error('Ошибка загрузки сообщений:', err);
+                }
+            },
+
+
+            sendMessage: async function() {
+                const input = document.getElementById('message-input');
+                const text = input.value.trim();
+                
+                if (!text || !this.currentChannel) return;
+                if (this.currentChannel.type !== 'text') {
+                    alert('Это голосовой канал');
+                    return;
+                }
+                
+                input.value = '';
+                
+                try {
+                    await API.sendChannelMessage(this.currentChannel.id, text);
+                    await this.loadMessages();
+                } catch (err) {
+                    alert('Ошибка отправки: ' + err.message);
+                }
+            },
+
+            createServer: async function() {
+                const name = prompt('Название сервера:');
+                if (!name) return;
+                
+                try {
+                    const res = await API.createServer(name);
+                    if (res.error) return alert(res.error);
+                    
+                    await this.loadServers();
+                    if (res.server) {
+                        this.selectServer(res.server);
+                    }
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            },
+
+            createChannel: async function() {
+                if (!this.currentServer) {
+                    alert('Сначала выберите сервер');
+                    return;
+                }
+                
+                const name = prompt('Название канала:');
+                if (!name) return;
+                
+                const isVoice = confirm('Голосовой канал? (OK = да, Отмена = текстовый)');
+                const type = isVoice ? 'voice' : 'text';
+                
+                try {
+                    const res = await API.createChannel(this.currentServer.id, name, type);
+                    
+                    if (res.error) {
+                        alert('Ошибка: ' + res.error);
+                        return;
+                    }
+                    
+                    await this.loadServers();
+                    
+                    const servers = await API.getServers();
+                    const updatedServer = servers.find(s => s.id === this.currentServer.id);
+                    
+                    if (updatedServer) {
+                        this.currentServer = updatedServer;
+                        await this.selectServer(updatedServer);
+                        
+                        if (res.channel) {
+                            setTimeout(() => {
+                                const newCh = updatedServer.channels.find(c => c.id === res.channel.id);
+                                if (newCh) this.selectChannel(newCh);
+                            }, 100);
+                        }
+                    }
+                } catch (err) {
+                    alert('Ошибка создания канала: ' + err.message);
+                }
+            },
+
+            deleteChannel: async function(channelId) {
+                if (!this.currentServer) return;
+                
+                const channel = this.currentServer.channels.find(c => c.id === channelId);
+                if (!channel) return;
+                
+                if (!confirm(`Удалить канал "${channel.name}"?`)) return;
+                
+                try {
+                    const res = await API.deleteChannel(this.currentServer.id, channelId);
+                    if (res.error) return alert(res.error);
+                    
+                    if (this.currentChannel?.id === channelId) {
+                        this.currentChannel = null;
+                        document.getElementById('chat-area').style.display = 'none';
+                        if (this.refreshInterval) {
+                            clearInterval(this.refreshInterval);
+                            this.refreshInterval = null;
+                        }
+                    }
+                    
+                    const servers = await API.getServers();
+                    const updated = servers.find(s => s.id === this.currentServer.id);
+                    if (updated) {
+                        this.currentServer = updated;
+                        await this.selectServer(updated);
+                    }
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            },
+
+            deleteServer: async function() {
+                if (!this.currentServer) return;
+                
+                if (!confirm(`Точно удалить сервер "${this.currentServer.name}"?`)) return;
+                
+                if (VoiceState.currentServer?.id === this.currentServer.id) {
+                    this.leaveVoice();
+                }
+                
+                try {
+                    const res = await API.deleteServer(this.currentServer.id);
+                    if (res.error) return alert(res.error);
+                    
+                    this.currentServer = null;
+                    this.currentChannel = null;
+                    document.getElementById('channels-list').style.display = 'none';
+                    document.getElementById('chat-area').style.display = 'none';
+                    document.getElementById('members-list').style.display = 'none';
+                    if (this.refreshInterval) {
+                        clearInterval(this.refreshInterval);
+                        this.refreshInterval = null;
+                    }
+                    
+                    await this.loadServers();
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            },
+
+            leaveServer: async function() {
+                if (!this.currentServer) return;
+                
+                if (!confirm(`Покинуть сервер "${this.currentServer.name}"?`)) return;
+                
+                if (VoiceState.currentServer?.id === this.currentServer.id) {
+                    this.leaveVoice();
+                }
+                
+                try {
+                    const res = await API.leaveServer(this.currentServer.id);
+                    if (res.error) return alert(res.error);
+                    
+                    this.currentServer = null;
+                    this.currentChannel = null;
+                    document.getElementById('channels-list').style.display = 'none';
+                    document.getElementById('chat-area').style.display = 'none';
+                    document.getElementById('members-list').style.display = 'none';
+                    if (this.refreshInterval) {
+                        clearInterval(this.refreshInterval);
+                        this.refreshInterval = null;
+                    }
+                    
+                    await this.loadServers();
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            },
+
+            showInvite: async function() {
+                if (!this.currentServer) return;
+                const res = await API.createInvite(this.currentServer.id);
+                document.getElementById('invite-code').textContent = res.code;
+                document.getElementById('invite-modal').classList.add('active');
+            },
+
+            closeInvite: function() {
+                document.getElementById('invite-modal').classList.remove('active');
+            },
+
+            copyInvite: function() {
+                const code = document.getElementById('invite-code').textContent;
+                navigator.clipboard.writeText(code);
+                alert('Скопировано!');
+            },
+
+            // ===== WebRTC Голосовой чат =====
+            
+            joinVoice: async function() {
+                if (VoiceState.ws && VoiceState.ws.readyState === WebSocket.OPEN) {
+                    console.log('Уже подключены к голосу');
+                    this.renderVoiceUsers();
+                    return;
+                }
+                
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const hasMicrophone = devices.some(d => d.kind === 'audioinput');
+                    
+                    if (!hasMicrophone) {
+                        throw new Error('NO_MICROPHONE');
+                    }
+
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        },
+                        video: false 
+                    });
+                    
+                    VoiceState.localStream = stream;
+                    VoiceState.currentChannel = this.currentChannel;
+                    VoiceState.currentServer = this.currentServer;
+                    VoiceState.save();
+                    
+                    document.getElementById('voice-panel')?.classList.add('active');
+                    document.getElementById('voice-status').style.display = 'inline';
+                    
+                    const token = localStorage.getItem('token');
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
+                    
+                    const ws = new WebSocket(wsUrl);
+                    VoiceState.ws = ws;
+                    
+                    ws.onopen = () => {
+                        console.log('WebSocket connected, joining channel:', this.currentChannel.id);
+                        ws.send(JSON.stringify({
+                            type: 'join',
+                            channelId: this.currentChannel.id
+                        }));
+                    };
+                    
+                    ws.onmessage = (event) => {
+                        const msg = JSON.parse(event.data);
+                        this.handleSignalingMessage(msg);
+                    };
+                    
+                    ws.onerror = (err) => {
+                        console.error('WebSocket error:', err);
+                    };
+                    
+                    ws.onclose = () => {
+                        console.log('WebSocket closed');
+                        setTimeout(() => {
+                            if (VoiceState.ws === ws) {
+                                this.cleanupVoice();
+                            }
+                        }, 5000);
+                    };
+                    
+                } catch (err) {
+                    console.error('Failed to join voice:', err);
+                    
+                    if (err.name === 'NotFoundError' || err.message === 'NO_MICROPHONE') {
+                        document.getElementById('mic-error').classList.add('active');
+                    } else if (err.name === 'NotAllowedError') {
+                        alert('Разрешите доступ к микрофону');
+                    }
+                    
+                    this.cleanupVoice();
+                }
+            },
+
+            handleSignalingMessage: async function(msg) {
+                console.log('Signaling message:', msg.type, msg);
+                
+                switch (msg.type) {
+                    case 'user-joined':
+                        console.log('User joined:', msg.username, msg.userId);
+                        if (msg.userId !== this.currentUser.id) {
+                            this.addVoiceUser(msg.userId, msg.username);
+                            await this.createPeerConnection(msg.userId, true);
+                        }
+                        break;
+                    case 'user-left':
+                        console.log('User left:', msg.userId);
+                        this.removeVoiceUser(msg.userId);
+                        this.removePeerConnection(msg.userId);
+                        break;
+                    case 'offer':
+                        console.log('Got offer from:', msg.from);
+                        this.addVoiceUser(msg.from, msg.username);
+                        await this.handleOffer(msg);
+                        break;
+                    case 'answer':
+                        console.log('Got answer from:', msg.from);
+                        await this.handleAnswer(msg);
+                        break;
+                    case 'ice-candidate':
+                        await this.handleIceCandidate(msg);
+                        break;
+                    case 'voice-users':
+                        // Получаем список всех пользователей в канале
+                        console.log('Got voice users list:', msg.users);
+                        if (msg.users && Array.isArray(msg.users)) {
+                            msg.users.forEach(u => {
+                                if (u.userId !== this.currentUser.id) {
+                                    this.addVoiceUser(u.userId, u.username);
+                                }
+                            });
+                        }
+                        break;
+                    case 'mute-status':
+                        this.updateVoiceUserMute(msg.userId, msg.muted);
+                        break;
+                }
+            },
+
+            addVoiceUser: function(userId, username) {
+                console.log('Adding voice user:', userId, username);
+                
+                // Добавляем себя тоже
+                if (!VoiceState.voiceUsers.has(this.currentUser.id)) {
+                    VoiceState.voiceUsers.set(this.currentUser.id, {
+                        id: this.currentUser.id,
+                        username: this.currentUser.username,
+                        muted: VoiceState.isMuted,
+                        speaking: false,
+                        isMe: true
+                    });
+                }
+                
+                VoiceState.voiceUsers.set(userId, {
+                    id: userId,
+                    username: username || 'Unknown',
+                    muted: false,
+                    speaking: false
+                });
+                
+                this.renderVoiceUsers();
+            },
+
+            removeVoiceUser: function(userId) {
+                VoiceState.voiceUsers.delete(userId);
+                this.renderVoiceUsers();
+            },
+
+            updateVoiceUserMute: function(userId, muted) {
+                const user = VoiceState.voiceUsers.get(userId);
+                if (user) {
+                    user.muted = muted;
+                    this.renderVoiceUsers();
+                }
+            },
+
+            renderVoiceUsers: function() {
+                const container = document.getElementById('voice-users');
+                console.log('Rendering voice users:', VoiceState.voiceUsers.size);
+                
+                if (VoiceState.voiceUsers.size === 0) {
+                    container.innerHTML = '<div style="color: var(--text-secondary); width: 100%; text-align: center;">Нет участников</div>';
+                    return;
+                }
+                
+                container.innerHTML = Array.from(VoiceState.voiceUsers.values()).map(u => `
+                    <div class="voice-user ${u.speaking ? 'speaking' : ''}" id="voice-user-${u.id}" data-user-id="${u.id}">
+                        <div class="voice-user-avatar">
+                            ${u.username[0].toUpperCase()}
+                            ${u.muted ? '<div class="voice-user-mute">🔇</div>' : ''}
+                        </div>
+                        <div class="voice-user-name">${u.username} ${u.isMe ? '(Вы)' : ''}</div>
+                    </div>
+                `).join('');
+            },
+
+            createPeerConnection: async function(userId, isInitiator) {
+                if (VoiceState.peerConnections[userId]) {
+                    VoiceState.peerConnections[userId].close();
+                }
+                
+                const pc = new RTCPeerConnection({
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                });
+                
+                VoiceState.peerConnections[userId] = pc;
+                
+                VoiceState.localStream.getTracks().forEach(track => {
+                    pc.addTrack(track, VoiceState.localStream);
+                });
+                
+                pc.ontrack = (event) => {
+                    console.log('Remote track from', userId);
+                    this.playRemoteAudio(userId, event.streams[0]);
+                };
+                
+                pc.onicecandidate = (event) => {
+                    if (event.candidate && VoiceState.ws?.readyState === WebSocket.OPEN) {
+                        VoiceState.ws.send(JSON.stringify({
+                            type: 'ice-candidate',
+                            to: userId,
+                            candidate: event.candidate
+                        }));
+                    }
+                };
+                
+                if (isInitiator) {
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+                    VoiceState.ws.send(JSON.stringify({
+                        type: 'offer',
+                        to: userId,
+                        offer: offer
+                    }));
+                }
+                
+                return pc;
+            },
+
+            handleOffer: async function(msg) {
+                const pc = await this.createPeerConnection(msg.from, false);
+                await pc.setRemoteDescription(new RTCSessionDescription(msg.offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                VoiceState.ws.send(JSON.stringify({
+                    type: 'answer',
+                    to: msg.from,
+                    answer: answer
+                }));
+            },
+
+            handleAnswer: async function(msg) {
+                const pc = VoiceState.peerConnections[msg.from];
+                if (pc) {
+                    await pc.setRemoteDescription(new RTCSessionDescription(msg.answer));
+                }
+            },
+
+            handleIceCandidate: async function(msg) {
+                const pc = VoiceState.peerConnections[msg.from];
+                if (pc) {
+                    await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
+                }
+            },
+
+            removePeerConnection: function(userId) {
+                if (VoiceState.peerConnections[userId]) {
+                    VoiceState.peerConnections[userId].close();
+                    delete VoiceState.peerConnections[userId];
+                }
+                const audio = document.getElementById(`audio-${userId}`);
+                if (audio) audio.remove();
+            },
+
+            playRemoteAudio: function(userId, stream) {
+                let audio = document.getElementById(`audio-${userId}`);
+                if (!audio) {
+                    audio = document.createElement('audio');
+                    audio.id = `audio-${userId}`;
+                    audio.autoplay = true;
+                    document.getElementById('audio-container').appendChild(audio);
+                }
+                audio.srcObject = stream;
+            },
+
+            toggleMute: function() {
+                if (!VoiceState.localStream) return;
+                
+                const audioTrack = VoiceState.localStream.getAudioTracks()[0];
+                if (!audioTrack) return;
+                
+                VoiceState.isMuted = !VoiceState.isMuted;
+                audioTrack.enabled = !VoiceState.isMuted;
+                
+                const muteBtn = document.getElementById('mute-btn');
+                const floatingMuteBtn = document.getElementById('floating-mute-btn');
+                
+                if (VoiceState.isMuted) {
+                    if (muteBtn) {
+                        muteBtn.innerHTML = '🔇 Размьютить';
+                        muteBtn.classList.add('muted');
+                    }
+                    if (floatingMuteBtn) {
+                        floatingMuteBtn.innerHTML = '🔇';
+                        floatingMuteBtn.classList.add('muted');
+                    }
+                } else {
+                    if (muteBtn) {
+                        muteBtn.innerHTML = '🎤 Мьют';
+                        muteBtn.classList.remove('muted');
+                    }
+                    if (floatingMuteBtn) {
+                        floatingMuteBtn.innerHTML = '🎤';
+                        floatingMuteBtn.classList.remove('muted');
+                    }
+                }
+                
+                VoiceState.save();
+                
+                // Обновляем свой статус в списке
+                const me = VoiceState.voiceUsers.get(this.currentUser.id);
+                if (me) {
+                    me.muted = VoiceState.isMuted;
+                    this.renderVoiceUsers();
+                }
+                
+                if (VoiceState.ws?.readyState === WebSocket.OPEN) {
+                    VoiceState.ws.send(JSON.stringify({
+                        type: 'mute-status',
+                        muted: VoiceState.isMuted
+                    }));
+                }
+            },
+
+            leaveVoice: function() {
+                if (VoiceState.ws) {
+                    VoiceState.ws.send(JSON.stringify({ type: 'leave' }));
+                    VoiceState.ws.close();
+                    VoiceState.ws = null;
+                }
+                this.cleanupVoice();
+            },
+
+            cleanupVoice: function() {
+                Object.values(VoiceState.peerConnections).forEach(pc => pc.close());
+                VoiceState.peerConnections = {};
+                
+                document.getElementById('audio-container').innerHTML = '';
+                
+                if (VoiceState.localStream) {
+                    VoiceState.localStream.getTracks().forEach(track => track.stop());
+                    VoiceState.localStream = null;
+                }
+                
+                VoiceState.voiceUsers.clear();
+                VoiceState.currentChannel = null;
+                VoiceState.currentServer = null;
+                VoiceState.clear();
+                
+                this.renderVoiceUsers();
+                
+                document.getElementById('voice-status').style.display = 'none';
+                document.getElementById('voice-users').style.display = 'none';
+                
+                this.hideFloatingVoicePanel();
+            }
+        };
+
+        window.addEventListener('beforeunload', () => {
+            VoiceState.save();
+        });
+
+        app.init();
+    </script>
+</body>
+</html>
