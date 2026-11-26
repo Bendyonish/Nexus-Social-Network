@@ -151,7 +151,6 @@ app.post('/api/register', upload.single('avatar'), async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-		console.log('HASH:', hashedPassword);
 
 		const user = {
 			id: uuidv4(),
