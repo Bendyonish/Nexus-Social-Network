@@ -191,8 +191,8 @@ app.post('/api/register', upload.single('avatar'), async (req, res) => {
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     const users = getUsers();
-    const user = users.find(u => u.username === username
-	);
+    const user = users.find(u => u.username === username);
+	console.log('USER:', user);
 
 	if (!user) {
     return res.json({ error: 'Неверные данные' });
