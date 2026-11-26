@@ -37,6 +37,14 @@ const initDB = () => {
     });
 };
 initDB();
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
 // Хелперы БД
 const getUsers = () => {
@@ -545,7 +553,7 @@ app.post('/api/messages', authMiddleware, (req, res) => {
         from: req.user.id,
         fromUsername: req.user.username,
         to,
-        text,
+        text: escapeHtml(text),
         createdAt: Date.now(),
         read: false
     };
@@ -632,7 +640,7 @@ app.post('/api/posts', authMiddleware, upload.single('media'), (req, res) => {
     
     const post = {
         id: uuidv4(),
-        content: content || '',
+        content: escapeHtml(content || ''),
         author: req.user.username,
         authorId: req.user.id,
         createdAt: Date.now(),
@@ -690,7 +698,7 @@ app.post('/api/posts/:id/comment', authMiddleware, (req, res) => {
         id: uuidv4(),
         author: req.user.username,
         authorId: req.user.id,
-        content,
+        content: escapeHtml(content),
         createdAt: Date.now(),
         likes: []
     };
@@ -756,7 +764,7 @@ app.post('/api/stories', authMiddleware, upload.single('media'), (req, res) => {
     const story = {
         id: uuidv4(),
         media: req.file.filename,
-        caption: caption || '',
+        caption: escapeHtml(caption || ''),
         author: req.user.username,
         authorId: req.user.id,
         createdAt: Date.now(),
@@ -806,7 +814,7 @@ app.post('/api/servers', authMiddleware, (req, res) => {
     const servers = getServers();
     const server = {
         id: uuidv4(),
-        name,
+        name: escapeHtml(name),
         ownerId: req.user.id,
         members: [req.user.id],
         channels: [
