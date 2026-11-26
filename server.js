@@ -184,6 +184,7 @@ app.post('/api/register', upload.single('avatar'), async (req, res) => {
         res.json({ success: true, token, user: { ...user, password: undefined } });
     } catch (err) {
         res.json({ error: err.message });
+		console.log('REGISTER USERS:', getUsers());
     }
 });
 
