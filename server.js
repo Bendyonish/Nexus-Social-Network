@@ -184,7 +184,6 @@ app.post('/api/register', upload.single('avatar'), async (req, res) => {
         res.json({ success: true, token, user: { ...user, password: undefined } });
     } catch (err) {
         res.json({ error: err.message });
-		console.log('REGISTER USERS:', getUsers());
     }
 });
 
@@ -192,10 +191,7 @@ app.post('/api/register', upload.single('avatar'), async (req, res) => {
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     const users = getUsers();
-	console.log('LOGIN:', username);
-console.log('USERS:', users);
     const user = users.find(u => u.username === username);
-	console.log('USER:', user);
 
 	if (!user) {
     return res.json({ error: 'Неверные данные' });
