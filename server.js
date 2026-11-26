@@ -191,6 +191,8 @@ app.post('/api/register', upload.single('avatar'), async (req, res) => {
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     const users = getUsers();
+	console.log('LOGIN:', username);
+console.log('USERS:', users);
     const user = users.find(u => u.username === username);
 	console.log('USER:', user);
 
